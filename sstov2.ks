@@ -1,9 +1,11 @@
 clearscreen.
-
+BRAKES off.
+SAS off.
 AG1 on.
 SET MYSTEER TO HEADING(90,0).
 set myengines to ship:engines().
 LOCK STEERING TO MYSTEER.
+SET PID TO PIDLOOP(1.0, 0.1, 0.3).
 
 lock throttle to 1.0.
 
@@ -17,34 +19,44 @@ UNTIL SHIP:APOAPSIS > 80000 { //Remember, all altitudes will be in meters, not k
         SET MYSTEER TO HEADING(90,5).
         PRINT "Pitching to 5 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
+        if ship:altitude >100 {
+            GEAR off.
+        }
 
     //Each successive IF statement checks to see if our velocity
     //is within a 100m/s block and adjusts our heading down another
     //ten degrees if so
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 200 AND SHIP:VELOCITY:SURFACE:MAG < 450 {
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 300 AND SHIP:VELOCITY:SURFACE:MAG < 430 { //430 prevents falling back to this
         SET MYSTEER TO HEADING(90,3).
         PRINT "Pitching to 3 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
 
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 450 AND SHIP:altitude < 10000 {
-        SET MYSTEER TO HEADING(90,17).
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 470 AND SHIP:VELOCITY:SURFACE:MAG < 480  {
+        SET MYSTEER TO HEADING(90,12).
         PRINT "Pitching to 15 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
+    }ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 480 AND SHIP:altitude < 10000 {
+        SET MYSTEER TO HEADING(90,17).
+        PRINT "Pitching to 17 degrees" AT(0,15).
+        PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
     } else if ship:altitude >= 10000 and ship:altitude < 22000 {
-        SET MYSTEER TO HEADING(90,8).
-        PRINT "Pitching to 8 degrees" AT(0,15).
+        SET MYSTEER TO HEADING(90,9).
+        PRINT "Pitching to 9 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
     } else if ship:altitude >= 22000 and ship:altitude < 25000 {
         AG2 on.
-        SET MYSTEER TO HEADING(90,8).
-        PRINT "Pitching to 8 degrees" AT(0,15).
+        SET MYSTEER TO HEADING(90,10).
+        PRINT "Pitching to 10 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
     }else if ship:altitude >= 25000 and myengines[5]:thrust > 0 {
         AG3 on.
-        SET MYSTEER TO HEADING(90,40).
-        PRINT "Pitching to 40 degrees" AT(0,15).
+        set PID:setpoint to 40.
+        set request to PID:update(TIME:SECONDS,getPitch()).
+        SET MYSTEER TO HEADING(90,request).
+        PRINT "Pitching to pid " + request + " degrees" AT(0,14).
+        PRINT "Currently " + getPitch() + " degrees" at(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
-    }else  {
+    }else if ship:altitude >= 25000  {
         AG3 on.
         SET MYSTEER TO ship:prograde.
         PRINT "Pitching to prograde" AT(0,15).
@@ -61,14 +73,15 @@ lock THROTTLE TO 0.
 
 //Create Circularization maneuver
 set circDV to getCircularVelocity(SHIP:APOAPSIS) - getApVelocity().
-set circNode to NODE(SHIP:OBT:ETA:APOAPSIS, 0, 0, circDV).
-
+set circNode to NODE(TIME:seconds + SHIP:OBT:ETA:APOAPSIS, 0, 0, circDV).
+add(circNode).
 PRINT "Circularization burn computed:".
 PRINT "Node of " + circDV + "m/s will take " + getBurnTime(circDV) + "s".
 PRINT "Result Orbit has ecc of " + circNode:orbit:eccentricity.
 
 //If we have extra time, stay prograde until out of atmosphere
 set burnStart to circNode:time - (getBurnTime(circDV)/2).
+PRINT "starting burn at " + burnStart.
 until TIME:seconds >= burnStart {
     if SHIP:ALTITUDE > KERBIN:ATM:HEIGHT {
         set MYSTEER to circNode:burnvector.
@@ -113,4 +126,8 @@ function getApVelocity {
 function getCircularVelocity {
     parameter height.
     return sqrt(KERBIN:MU/(height+KERBIN:RADIUS)).
+}
+
+function getPitch{
+    return 90-VECTORANGLE(ship:up:forevector,ship:facing:forevector).
 }

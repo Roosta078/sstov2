@@ -1,7 +1,7 @@
 print "Ap velocity = " + getApVelocity() + "m/s".
-print "20 m/s burn takes " + getBurnTime(20) + "s".
-print "75km circular vel = " + getCircularVelocity(75000) + "s".
-
+//print "20 m/s burn takes " + getBurnTime(20) + "s".
+print "Ap circular vel = " + getCircularVelocity(ship:apoapsis) + "s".
+print "current pitch is " + getPitch() + "deg".
 
 
 function getBurnTime {
@@ -24,4 +24,8 @@ function getApVelocity {
 function getCircularVelocity {
     parameter height.
     return sqrt(KERBIN:MU/(height+KERBIN:RADIUS)).
+}
+
+function getPitch{
+    return 90-VECTORANGLE(ship:up:forevector,ship:facing:forevector).
 }
