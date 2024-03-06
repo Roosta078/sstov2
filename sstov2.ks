@@ -110,22 +110,37 @@ until TIME:seconds >= burnStart {
     }.
     WAIT(0.001).
 }.
+
+if recompute {
+            remove circNode.
+            set circDV to getCircularVelocity(SHIP:APOAPSIS) - getApVelocity().
+            set circNode to NODE(TIME:seconds + SHIP:OBT:ETA:APOAPSIS, 0, 0, circDV).
+            add(circNode).
+            set burnStart to circNode:time - (getBurnTime(circDV)/2).
+            set recompute to false.
+            print "burn recomputed".
+        }
 lock THROTTLE to 1.0.
 set timeStart to TIME:SECONDS.
 set burntarget to ship:apoapsis - 50.
-until SHIP:periapsis > burntarget{
+set burnEnd to TIME:SECONDS + getBurnTime(circDV).
+set newTarget to ship:apoapsis * 2.
+//until TIME:SECONDS > burnEnd{
+until ship:apoapsis+ship:periapsis > newTarget{
     set MYSTEER to circNode:burnvector.
     WAIT(0.001).
 }
 lock THROTTLE to 0.
 set timeEnd to TIME:SECONDS.
 print "burn took " + (timeEnd-timeStart) + "s".
-
+remove(circNode).
 print "Launch is complete".
 
 //This sets the user's throttle setting to zero to prevent the throttle
 //from returning to the position it was at before the script was run.
 SET SHIP:CONTROL:PILOTMAINTHROTTLE TO 0.
+SAS on.
+
 
 
 function getBurnTime {
