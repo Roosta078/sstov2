@@ -7,7 +7,10 @@ function timeToAngle{ // assumes circular orbit
     set ang_vel to 360/SHIP:ORBIT:PERIOD.
     set surf_ang_vel to 360/SHIP:ORBIT:BODY:ROTATIONPERIOD.
     
-    return angle0to360(angle-theta_i)/(ang_vel-surf_ang_vel).
+    print "theta_i: " + theta_i.
+    print "ang_vel: " + ang_vel.
+    print "surf_ang_vel: " + surf_ang_vel.
+    return angle0to360(theta_i-angle)/(ang_vel-surf_ang_vel).
 }
 
 function angle0to360{
@@ -29,8 +32,13 @@ function calcDeorbit{ //again assumes circular orbit
     
     set ri to burnHeight+ship:body:radius.
     set rf to PeHeight+ship:body:radius.
-    
-    set calcVel to sqrt(2*ship:body:mu*((1/ri)-(1/rf))/(1-(rf^2/ri^2))).
+    print "ri " + ri.
+    print "rf " + rf.
+    set p1 to ((1/ri)-(1/rf)).
+    set p2 to (1-(rf^2/ri^2)).
+    print p1.
+    print p2.
+    set calcVel to sqrt(2*ship:body:mu*((1/ri)-(1/rf))/(1-(ri^2/rf^2))).
     set dV to calcVel - ship:velocity:orbit:mag.
     return node(Btime, 0,0,dV).
 }
