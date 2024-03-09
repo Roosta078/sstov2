@@ -9,17 +9,19 @@ SET PID TO PIDLOOP(1.1, 0.4, 0.2).
 set mylog to "0:/log.csv".
 //log "time,input,output,setpoint,pterm("+PID:kp+"),iterm("+PID:ki+"),dterm("+PID:kd+")," to mylog.
 lock throttle to 1.0.
-
+set runway_end to -74.51.
 UNTIL SHIP:APOAPSIS > 75000 { //Remember, all altitudes will be in meters, not kilometers
 
-    IF SHIP:VELOCITY:SURFACE:MAG < 130 {
+    //IF SHIP:VELOCITY:SURFACE:MAG < 130 {
+    IF SHIP:LONGITUDE < runway_end {
         
-        SET MYSTEER TO HEADING(90,0.9).
+        SET MYSTEER TO HEADING(90,0.36).
+        PRINT SHIP:LONGITUDE AT (0,16).
 
-    } ELSE IF SHIP:VELOCITY:SURFACE:MAG >= 130 AND SHIP:VELOCITY:SURFACE:MAG < 300 {
+    } ELSE IF SHIP:VELOCITY:SURFACE:MAG < 300 {
         SET MYSTEER TO HEADING(90,10).
         PRINT "Pitching to 5 degrees" AT(0,15).
-        PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
+        PRINT SHIP:LONGITUDE AT (0,16).
         if ship:altitude >100 {
             GEAR off.
         }
@@ -41,15 +43,15 @@ UNTIL SHIP:APOAPSIS > 75000 { //Remember, all altitudes will be in meters, not k
         PRINT "Pitching to 17 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
     } else if ship:altitude >= 10000 and ship:altitude < 22000 {
-        SET MYSTEER TO HEADING(90,11).
+        SET MYSTEER TO HEADING(90,9).
         PRINT "Pitching to 11 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
-    } else if ship:altitude >= 22000 and ship:altitude < 28000 {
+    } else if ship:altitude >= 22000 and ship:altitude < 26000 {
         AG2 on.
         SET MYSTEER TO HEADING(90,12).
         PRINT "Pitching to 12 degrees" AT(0,15).
         PRINT ROUND(SHIP:APOAPSIS,0) AT (0,16).
-    }else if ship:altitude >= 28000 and myengines[5]:thrust > 0 {
+    }else if ship:altitude >= 26000 and myengines[5]:thrust > 0 {
         AG3 on.
         set PID:setpoint to 35.
         set request to PID:update(TIME:SECONDS,getPitch()).
