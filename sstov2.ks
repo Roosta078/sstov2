@@ -10,12 +10,13 @@ set mylog to "0:/log.csv".
 //log "time,input,output,setpoint,pterm("+PID:kp+"),iterm("+PID:ki+"),dterm("+PID:kd+")," to mylog.
 lock throttle to 1.0.
 set runway_end to -74.51.
+set runway_pitch to getPitch().
 UNTIL SHIP:APOAPSIS > 75000 { //Remember, all altitudes will be in meters, not kilometers
 
     //IF SHIP:VELOCITY:SURFACE:MAG < 130 {
     IF SHIP:LONGITUDE < runway_end {
         
-        SET MYSTEER TO HEADING(90,0.36).
+        SET MYSTEER TO HEADING(90,runway_pitch).
         PRINT SHIP:LONGITUDE AT (0,16).
 
     } ELSE IF SHIP:VELOCITY:SURFACE:MAG < 300 {

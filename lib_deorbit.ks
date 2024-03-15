@@ -1,3 +1,4 @@
+run once lib_utils.
 print "Loading lib_deorbit".
 function timeToAngle{ // assumes circular orbit
     parameter angle.
@@ -7,9 +8,9 @@ function timeToAngle{ // assumes circular orbit
     set ang_vel to 360/SHIP:ORBIT:PERIOD.
     set surf_ang_vel to 360/SHIP:ORBIT:BODY:ROTATIONPERIOD.
     
-    print "theta_i: " + theta_i.
-    print "ang_vel: " + ang_vel.
-    print "surf_ang_vel: " + surf_ang_vel.
+    debug("theta_i: " + theta_i).
+    debug("ang_vel: " + ang_vel).
+    debug("surf_ang_vel: " + surf_ang_vel).
     return angle0to360(theta_i-angle)/(ang_vel-surf_ang_vel).
 }
 
@@ -32,12 +33,12 @@ function calcDeorbit{ //again assumes circular orbit
     
     set ri to burnHeight+ship:body:radius.
     set rf to PeHeight+ship:body:radius.
-    print "ri " + ri.
-    print "rf " + rf.
+    debug("ri " + ri).
+    debug("rf " + rf).
     set p1 to ((1/ri)-(1/rf)).
     set p2 to (1-(rf^2/ri^2)).
-    print p1.
-    print p2.
+    debug(p1).
+    debug(p2).
     set calcVel to sqrt(2*ship:body:mu*((1/ri)-(1/rf))/(1-(ri^2/rf^2))).
     set dV to calcVel - ship:velocity:orbit:mag.
     return node(Btime, 0,0,dV).
@@ -54,4 +55,17 @@ function getBurnTime {
     set natural to constant:e ^ (-deltaV*massFlow/thrust).
 
     return coeff * (1 - natural).
+}
+
+FUNCTION heading_of_vector { // heading_of_vector returns the heading of the vector (number range 0 to 360)
+	PARAMETER vecT.
+
+	LOCAL east IS VCRS(SHIP:UP:VECTOR, SHIP:NORTH:VECTOR).
+
+	LOCAL trig_x IS VDOT(SHIP:NORTH:VECTOR, vecT).
+	LOCAL trig_y IS VDOT(east, vecT).
+
+	LOCAL result IS ARCTAN2(trig_y, trig_x).
+
+	IF result < 0 {RETURN 360 + result.} ELSE {RETURN result.}
 }
